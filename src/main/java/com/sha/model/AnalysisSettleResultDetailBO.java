@@ -1,6 +1,7 @@
 package com.sha.model;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class AnalysisSettleResultDetailBO {
 
@@ -21,6 +22,13 @@ public class AnalysisSettleResultDetailBO {
    */
   private BigDecimal amount;
 
+  /**
+   * 差额
+   */
+  private BigDecimal differentAmount;
+
+  private List<AnalysisSettleResultBO> settleResultBOS;
+
   @Override
   public String toString() {
     return "AnalysisSettleResultDetailBO{" +
@@ -28,7 +36,24 @@ public class AnalysisSettleResultDetailBO {
         ", jiFeiCode=" + jiFeiCode +
         ", jiFeiStr='" + jiFeiStr + '\'' +
         ", amount=" + amount +
+        ", settleResultBOS=" + settleResultBOS +
         '}';
+  }
+
+  public BigDecimal getDifferentAmount() {
+    return differentAmount;
+  }
+
+  public void setDifferentAmount(BigDecimal differentAmount) {
+    this.differentAmount = differentAmount;
+  }
+
+  public List<AnalysisSettleResultBO> getSettleResultBOS() {
+    return settleResultBOS;
+  }
+
+  public void setSettleResultBOS(List<AnalysisSettleResultBO> settleResultBOS) {
+    this.settleResultBOS = settleResultBOS;
   }
 
   public String getJiFeiSource() {

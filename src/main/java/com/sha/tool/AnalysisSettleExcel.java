@@ -78,21 +78,119 @@ public class AnalysisSettleExcel {
     Thread.sleep(500);
     System.out.println("开始分析数据。。。请耐心等待");
     //分析数据
-    List<AnalysisSettleResultBO> resultBOS = AnalysisData(jiFeiDataBOS, dictionaryBOS, flowBOS,
+    //分析 计费来源+费用名称 与 交易场景 1 vs 1 或者 多 vs 1
+    List<AnalysisSettleResultBO> oneResultBOS = AnalysisData(jiFeiDataBOS, dictionaryBOS, flowBOS,
         tradeSceneBOS);
+    //分析 计费来源+费用名称 与 交易场景 1 vs 多
+    List<AnalysisSettleResultDetailBO> twoResultBOS = AnalysisDataTwo(jiFeiDataBOS, dictionaryBOS,
+        flowBOS, tradeSceneBOS);
     System.out.println("分析完成");
     System.out.println("准备生成excel文件");
     System.out.print("请输入想生成文件的路径:");
     String filePath = scanner.next();
     System.out.println("收到，开始生成文件....");
-    generateExcel(resultBOS, filePath);
+    generateExcel(oneResultBOS, twoResultBOS, filePath);
     System.out.println("生成excel文件成功");
     System.out.println("欢迎再次使用");
   }
 
-  private static List<AnalysisSettleResultBO> AnalysisData(List<JiFeiDataBO> jiFeiDataBOS,
+  /**
+   * 分析 计费来源+费用名称 与 交易场景 1 vs 多
+   */
+  private static List<AnalysisSettleResultDetailBO> AnalysisDataTwo(
+      List<JiFeiDataBO> jiFeiDataBOList,
+      List<DictionaryBO> dictionaryBOS, List<FlowBO> flowBOS, List<TradeSceneBO> tradeSceneBOS) {
+
+    List<JiFeiDataBO> jiFeiDataBOS = Lists.newArrayList();
+    for (JiFeiDataBO jiFeiDataBO : jiFeiDataBOList) {
+      int count = 0;
+      for (DictionaryBO dictionaryBO : dictionaryBOS) {
+        if (jiFeiDataBO.get计费来源().trim().equals(dictionaryBO.get计费来源().trim()) &&
+            jiFeiDataBO.get费用名称().trim().equals(dictionaryBO.get费用类型().trim())) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        throw new RuntimeException(
+            jiFeiDataBO.get计费来源() + "-" + jiFeiDataBO.get费用名称() + " 没有匹配到交易场景");
+      }
+      if (count > 1) {
+        jiFeiDataBOS.add(jiFeiDataBO);
+      }
+    }
+
+    if (jiFeiDataBOS.size() == 0) {
+      return Lists.newArrayList();
+    }
+
+    List<AnalysisSettleResultDetailBO> detailBOS = Lists.newArrayList();
+    for (JiFeiDataBO jiFeiDataBO : jiFeiDataBOS) {
+      List<DictionaryBO> dictionaryBOList = dictionaryBOS.stream()
+          .filter(bo -> jiFeiDataBO.get计费来源().trim().equals(bo.get计费来源().trim()) &&
+              jiFeiDataBO.get费用名称().trim().equals(bo.get费用类型().trim()))
+          .collect(Collectors.toList());
+      AnalysisSettleResultDetailBO detailBO = new AnalysisSettleResultDetailBO();
+      detailBO.setJiFeiSource(jiFeiDataBO.get计费来源());
+      detailBO.setJiFeiStr(jiFeiDataBO.get费用名称());
+      detailBO.setAmount(jiFeiDataBO.get结算金额());
+      detailBO.setJiFeiCode(dictionaryBOList.get(0).get费用编码());
+      List<AnalysisSettleResultBO> settleResultBOS = Lists.newArrayList();
+
+      BigDecimal ourTotalAmount = BigDecimal.ZERO;
+      for (DictionaryBO dictionaryBO : dictionaryBOList) {
+        AnalysisSettleResultBO resultBO = new AnalysisSettleResultBO();
+        resultBO.setSceneName(dictionaryBO.get账户系统场景名称());
+        resultBO.setTradeCode(dictionaryBO.get交易场景());
+        TradeSceneBO tradeSceneBO = tradeSceneBOS.stream()
+            .filter(bo -> bo.getCommonCode().equals(dictionaryBO.get交易场景())).findFirst()
+            .orElse(null);
+        if (tradeSceneBO == null) {
+          throw new RuntimeException(dictionaryBO.get交易场景() + " 该场景我们这边无对应数据");
+        }
+        resultBO.setInAccountTypeDesc(tradeSceneBO.getInAccountTypeDesc());
+        resultBO.setInUserTypeDesc(tradeSceneBO.getInUserTypeDesc());
+        resultBO.setOutAccountTypeDesc(tradeSceneBO.getOutAccountTypeDesc());
+        resultBO.setOutUserTypeDesc(tradeSceneBO.getOutUserTypeDesc());
+        BigDecimal amount = flowBOS.stream()
+            .filter(bo -> bo.getSubsetBusinessType().equals(tradeSceneBO.getSubsetBusinessType()))
+            .map(FlowBO::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        resultBO.setAmount(amount);
+        ourTotalAmount = ourTotalAmount.add(amount);
+        settleResultBOS.add(resultBO);
+      }
+      detailBO.setDifferentAmount(jiFeiDataBO.get结算金额().subtract(ourTotalAmount));
+      detailBO.setSettleResultBOS(settleResultBOS);
+      detailBOS.add(detailBO);
+    }
+    return detailBOS;
+  }
+
+  private static List<AnalysisSettleResultBO> AnalysisData(List<JiFeiDataBO> jiFeiDataBOList,
       List<DictionaryBO> dictionaryBOS,
       List<FlowBO> flowBOS, List<TradeSceneBO> tradeSceneBOS) {
+
+    List<JiFeiDataBO> jiFeiDataBOS = Lists.newArrayList();
+    for (JiFeiDataBO jiFeiDataBO : jiFeiDataBOList) {
+      int count = 0;
+      for (DictionaryBO dictionaryBO : dictionaryBOS) {
+        if (jiFeiDataBO.get计费来源().trim().equals(dictionaryBO.get计费来源().trim()) &&
+            jiFeiDataBO.get费用名称().trim().equals(dictionaryBO.get费用类型().trim())) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        throw new RuntimeException(
+            jiFeiDataBO.get计费来源() + "-" + jiFeiDataBO.get费用名称() + " 没有匹配到交易场景");
+      }
+      if (count == 1) {
+        jiFeiDataBOS.add(jiFeiDataBO);
+      }
+    }
+
+    if (jiFeiDataBOS.size() == 0) {
+      return Lists.newArrayList();
+    }
+
     //jiFeiDataBOS设置字典项属性
     for (JiFeiDataBO jiFeiDataBO : jiFeiDataBOS) {
       for (DictionaryBO dictionaryBO : dictionaryBOS) {
@@ -132,7 +230,7 @@ public class AnalysisSettleExcel {
       resultBO.setOutUserTypeDesc(tradeSceneBO.getOutUserTypeDesc());
       resultBO.setOutAccountTypeDesc(tradeSceneBO.getOutAccountTypeDesc());
       resultBO.setAmount(flowMoney);
-      resultBO.setDifferentAmount(flowMoney.subtract(settleMoney));
+      resultBO.setDifferentAmount(settleMoney.subtract(flowMoney));
       List<AnalysisSettleResultDetailBO> detailBOS = Lists.newArrayList();
       for (JiFeiDataBO jiFeiDataBO : jifeiDatas) {
         AnalysisSettleResultDetailBO detailBO = new AnalysisSettleResultDetailBO();
@@ -171,7 +269,8 @@ public class AnalysisSettleExcel {
   /**
    * 生成excel
    */
-  private static void generateExcel(List<AnalysisSettleResultBO> resultBOS, String filePath)
+  private static void generateExcel(List<AnalysisSettleResultBO> resultBOS,
+      List<AnalysisSettleResultDetailBO> twoResultBOS, String filePath)
       throws IOException {
     // 创建excel文件
     XSSFWorkbook workbook = new XSSFWorkbook();
@@ -188,7 +287,7 @@ public class AnalysisSettleExcel {
       cell.setCellValue(titles[i]);
     }
 
-    // 构建表数据
+    // 构建表数据 集合一
     int rowCount = 1, columnCount = 0;
     for (AnalysisSettleResultBO resultBO : resultBOS) {
       List<AnalysisSettleResultDetailBO> detailBOS = resultBO.getDetailBOS();
@@ -238,6 +337,75 @@ public class AnalysisSettleExcel {
             new CellRangeAddress(rowCount - detailBOS.size(), rowCount - 1, 10, 10));
         sheet.addMergedRegion(
             new CellRangeAddress(rowCount - detailBOS.size(), rowCount - 1, 11, 11));
+      }
+    }
+
+    //集合二
+    for (AnalysisSettleResultDetailBO detailBO : twoResultBOS) {
+
+      List<AnalysisSettleResultBO> settleResultBOS = detailBO.getSettleResultBOS();
+
+      boolean first = true;
+      for (AnalysisSettleResultBO resultBO : settleResultBOS) {
+
+        XSSFRow row = sheet.createRow(rowCount);
+
+        if (first) {
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(detailBO.getJiFeiSource());
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(detailBO.getJiFeiCode());
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(detailBO.getJiFeiStr());
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(detailBO.getAmount().toString());
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(resultBO.getOutUserTypeDesc());
+          cell = row.createCell(columnCount++);
+          cell.setCellValue(resultBO.getInUserTypeDesc());
+        } else {
+          columnCount = columnCount + 6;
+        }
+
+        cell = row.createCell(columnCount++);
+        cell.setCellValue(resultBO.getSceneName());
+        cell = row.createCell(columnCount++);
+        cell.setCellValue(resultBO.getTradeCode());
+        cell = row.createCell(columnCount++);
+        cell.setCellValue(resultBO.getOutAccountTypeDesc());
+        cell = row.createCell(columnCount++);
+        cell.setCellValue(resultBO.getInAccountTypeDesc());
+        cell = row.createCell(columnCount++);
+        cell.setCellValue(resultBO.getAmount().toString());
+
+        if (first) {
+          cell = row.createCell(columnCount);
+          cell.setCellValue(resultBO.getDifferentAmount().toString());
+          first = false;
+        }
+
+        columnCount = 0;
+        rowCount++;
+      }
+      if (settleResultBOS.size() > 1) {
+        sheet
+            .addMergedRegion(
+                new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 0, 0));
+        sheet
+            .addMergedRegion(
+                new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 1, 1));
+        sheet
+            .addMergedRegion(
+                new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 2, 2));
+        sheet
+            .addMergedRegion(
+                new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 3, 3));
+        sheet.addMergedRegion(
+            new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 4, 4));
+        sheet.addMergedRegion(
+            new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 5, 5));
+        sheet.addMergedRegion(
+            new CellRangeAddress(rowCount - settleResultBOS.size(), rowCount - 1, 11, 11));
       }
     }
     File file = new File(filePath + File.separator + "分析结果.xlsx");
