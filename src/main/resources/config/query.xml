@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="userTest">
+  <select id="getTradeScene" resultType="com.sha.model.TradeSceneBO">
+SELECT scene.common_code as common_code, scene.common_desc, uses.in_user_type
+	, (
+		SELECT member_type_name
+		FROM dfmember.member_type
+		WHERE member_type_code = uses.in_user_type
+			AND platform_id = one.platform_id
+	) AS in_user_type_desc, uses.in_parent_account_type AS in_account_type
+	, (
+		SELECT acc.account_type_name
+		FROM dfaccount.account_type acc
+			JOIN dfmember.member_type mem ON acc.member_type_id = mem.member_type_id
+		WHERE acc.account_type_code = uses.in_parent_account_type
+			AND uses.in_user_type = mem.member_type_code
+	) AS in_account_type_desc, uses.out_user_type
+	, (
+		SELECT member_type_name
+		FROM dfmember.member_type
+		WHERE member_type_code = uses.out_user_type
+			AND platform_id = one.platform_id
+	) AS out_user_type_desc, uses.out_parent_account_type AS out_account_type
+	, (
+		SELECT acc.account_type_name
+		FROM dfaccount.account_type acc
+			JOIN dfmember.member_type mem ON acc.member_type_id = mem.member_type_id
+		WHERE acc.account_type_code = uses.out_parent_account_type
+			AND uses.out_user_type = mem.member_type_code
+	) AS out_account_type_desc, uses.accounting_scene_code AS business_scene, one.scene_desc AS business_scene_desc, uses.accounting_business_type_code AS business_type, two.business_type_desc AS business_type_desc
+	, uses.accounting_subset_business_type_code AS subset_business_type, three.subset_business_type_desc
+FROM dfmanager.accounting_trade_scene scene
+	JOIN dfmanager.accounting_money_uses uses ON scene.common_code = uses.trade_scene_common_code
+	JOIN dfmanager.accounting_scene one ON uses.accounting_scene_code = one.scene_code
+	JOIN dfmanager.accounting_business_type two ON uses.accounting_business_type_code = two.business_type_code
+	JOIN dfmanager.accounting_subset_business_type three ON uses.accounting_subset_business_type_code = three.subset_business_type_code
+  </select>
+
+  <select id="getFlow" resultType="com.sha.model.FlowBO">
+    SELECT *
+    FROM accounting_${tableId}
+    WHERE
+      business_id = #{businessId}
+    ORDER BY id ASC
+  </select>
+</mapper>
