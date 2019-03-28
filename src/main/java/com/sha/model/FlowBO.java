@@ -22,4 +22,12 @@ public class FlowBO {
   public void setAmount(BigDecimal amount) {
     this.amount = amount;
   }
+
+  @Override
+  public String toString() {
+    return "FlowBO{" +
+        "subsetBusinessType=" + subsetBusinessType +
+        ", amount=" + amount +
+        '}';
+  }
 }

@@ -1,6 +1,5 @@
 package com.sha.util;
 
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,8 +20,6 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelUtil {
-
-  private static Gson gson = new Gson();
 
   public static List<List<String>> readXlsx(String path) throws Exception {
     InputStream is = new FileInputStream(path);

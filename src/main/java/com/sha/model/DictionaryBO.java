@@ -6,6 +6,7 @@ public class DictionaryBO {
   private Integer 费用编码;
   private String 费用类型;
   private Integer 交易场景;
+  private String 账户系统场景名称;
 
   public String get计费来源() {
     return 计费来源;
@@ -39,6 +40,14 @@ public class DictionaryBO {
     this.交易场景 = 交易场景;
   }
 
+  public String get账户系统场景名称() {
+    return 账户系统场景名称;
+  }
+
+  public void set账户系统场景名称(String 账户系统场景名称) {
+    this.账户系统场景名称 = 账户系统场景名称;
+  }
+
   @Override
   public String toString() {
     return "DictionaryBO{" +
@@ -46,6 +55,7 @@ public class DictionaryBO {
         ", 费用编码=" + 费用编码 +
         ", 费用类型='" + 费用类型 + '\'' +
         ", 交易场景=" + 交易场景 +
+        ", 账户系统场景名称=" + 账户系统场景名称 +
         '}';
   }
 }

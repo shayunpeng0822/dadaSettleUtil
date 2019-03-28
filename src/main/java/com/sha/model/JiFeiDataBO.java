@@ -10,6 +10,34 @@ public class JiFeiDataBO {
   private BigDecimal 结算金额;
   private Integer 订单日期;
 
+  private Integer 交易场景;
+  private String 账户场景名称;
+  private Integer 费用编码;
+
+  public String get账户场景名称() {
+    return 账户场景名称;
+  }
+
+  public void set账户场景名称(String 账户场景名称) {
+    this.账户场景名称 = 账户场景名称;
+  }
+
+  public Integer get费用编码() {
+    return 费用编码;
+  }
+
+  public void set费用编码(Integer 费用编码) {
+    this.费用编码 = 费用编码;
+  }
+
+  public Integer get交易场景() {
+    return 交易场景;
+  }
+
+  public void set交易场景(Integer 交易场景) {
+    this.交易场景 = 交易场景;
+  }
+
   public String get计费来源() {
     return 计费来源;
   }

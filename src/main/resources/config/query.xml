@@ -40,7 +40,7 @@ FROM dfmanager.accounting_trade_scene scene
 
   <select id="getFlow" resultType="com.sha.model.FlowBO">
     SELECT *
-    FROM accounting_${tableId}
+    FROM accounting.accounting_${tableId}
     WHERE
       business_id = #{businessId}
     ORDER BY id ASC
