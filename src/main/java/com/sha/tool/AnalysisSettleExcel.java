@@ -380,7 +380,7 @@ public class AnalysisSettleExcel {
 
         if (first) {
           cell = row.createCell(columnCount);
-          cell.setCellValue(resultBO.getDifferentAmount().toString());
+          cell.setCellValue(detailBO.getDifferentAmount().toString());
           first = false;
         }
 

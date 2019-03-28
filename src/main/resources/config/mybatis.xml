@@ -13,9 +13,9 @@
       <!-- 配置数据库连接信息 -->
       <dataSource type="POOLED">
         <property name="driver" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value=""/>
-        <property name="username" value=""/>
-        <property name="password" value=""/>
+        <property name="url" value="jdbc:mysql://10.9.113.30:3306"/>
+        <property name="username" value="dev_w"/>
+        <property name="password" value="6nvjq0_HW"/>
       </dataSource>
     </environment>
   </environments>
