@@ -54,29 +54,41 @@ public class AnalysisSettleExcel {
     //获取计费的金额数据
     Scanner scanner = new Scanner(System.in);
     System.out.print("输入文件一(结算金额数据)的文件地址:");
+    Thread.sleep(3000);
     String fileOne = scanner.next();
     List<List<String>> lists = ExcelUtil.readXlsx(fileOne);
     List<JiFeiDataBO> jiFeiDataBOS = generateObj(lists, new TypeToken<List<JiFeiDataBO>>() {
     }.getType());
     System.out.println("解析成功，excel中一共" + (jiFeiDataBOS.size() - 1) + "条记录");
+    Thread.sleep(1500);
+    System.out.println("文件一详细内容为：" + jiFeiDataBOS);
+    Thread.sleep(1500);
     //获取字典数据
     System.out.print("输入文件二(字典数据)的文件地址:");
+    Thread.sleep(3000);
     String fileTwo = scanner.next();
     lists = ExcelUtil.readXlsx(fileTwo);
     List<DictionaryBO> dictionaryBOS = generateObj(lists, new TypeToken<List<DictionaryBO>>() {
     }.getType());
     System.out.println("解析成功，excel中一共" + (dictionaryBOS.size() - 1) + "条记录");
+    Thread.sleep(1500);
+    System.out.println("文件二详细内容为：" + dictionaryBOS);
+    Thread.sleep(1500);
     //获取流水数据
+    System.out.println("开始获取流水数据和交易场景数据");
+    Thread.sleep(3000);
     Map<String, Object> sqlParamMap = Maps.newHashMap();
     sqlParamMap.put("tableId", jiFeiDataBOS.get(0).get订单日期());
     sqlParamMap.put("businessId", jiFeiDataBOS.get(0).get订单号());
     List<FlowBO> flowBOS = session.selectList("getFlow", sqlParamMap);
     System.out.println("获取流水数据成功,流水条数：" + flowBOS.size());
+    Thread.sleep(1500);
     //获取交易场景和三级场景关系
     List<TradeSceneBO> tradeSceneBOS = session.selectList("getTradeScene");
     System.out.println("获取交易场景和三级场景关系,场景条数：" + tradeSceneBOS.size());
-    Thread.sleep(500);
+    Thread.sleep(1500);
     System.out.println("开始分析数据。。。请耐心等待");
+    Thread.sleep(3000);
     //分析数据
     //分析 计费来源+费用名称 与 交易场景 1 vs 1 或者 多 vs 1
     List<AnalysisSettleResultBO> oneResultBOS = AnalysisData(jiFeiDataBOS, dictionaryBOS, flowBOS,
@@ -85,10 +97,14 @@ public class AnalysisSettleExcel {
     List<AnalysisSettleResultDetailBO> twoResultBOS = AnalysisDataTwo(jiFeiDataBOS, dictionaryBOS,
         flowBOS, tradeSceneBOS);
     System.out.println("分析完成");
+    Thread.sleep(1500);
     System.out.println("准备生成excel文件");
+    Thread.sleep(1500);
     System.out.print("请输入想生成文件的路径:");
+    Thread.sleep(3000);
     String filePath = scanner.next();
     System.out.println("收到，开始生成文件....");
+    Thread.sleep(3000);
     generateExcel(oneResultBOS, twoResultBOS, filePath);
     System.out.println("生成excel文件成功");
     System.out.println("欢迎再次使用");
@@ -259,10 +275,8 @@ public class AnalysisSettleExcel {
       for (int k = 0; k < fields.size(); k++) {
         map.put(fields.get(k).trim(), list.get(k).trim());
       }
-      System.out.println(map);
       needGenerateList.add(gson.toJson(map));
     }
-    System.out.println(needGenerateList);
     return gson.fromJson(needGenerateList.toString(), type);
   }
 
