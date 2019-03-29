@@ -106,7 +106,7 @@ public class AnalysisSettleExcel {
     System.out.println("收到，开始生成文件....");
     Thread.sleep(3000);
     generateExcel(oneResultBOS, twoResultBOS, filePath);
-    System.out.println("生成excel文件成功");
+    System.out.println("生成excel文件成功，excel名字为：分析结果.xlsx");
     System.out.println("欢迎再次使用");
   }
 
